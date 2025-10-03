@@ -1,0 +1,366 @@
+-- // Professional Multi-Feature GUI (NC RBX Console)
+-- Features: Infinite Jump, Multipliers, ESP/Nametags
+-- Press "[" to toggle Nametags ON/OFF after ESP is active
+
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.Name = "NC_RBX_GUI"
+
+-- ===== Loading Screen =====
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Size = UDim2.new(0, 400, 0, 120)
+LoadingFrame.Position = UDim2.new(0.5, -200, 0.5, -60)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Parent = ScreenGui
+
+Instance.new("UICorner", LoadingFrame).CornerRadius = UDim.new(0,10)
+
+local LoadingText = Instance.new("TextLabel")
+LoadingText.Size = UDim2.new(1,0,0,40)
+LoadingText.Position = UDim2.new(0,0,0,15)
+LoadingText.BackgroundTransparency = 1
+LoadingText.Text = "Loading..."
+LoadingText.TextColor3 = Color3.fromRGB(0,170,255)
+LoadingText.Font = Enum.Font.GothamBold
+LoadingText.TextScaled = true
+LoadingText.Parent = LoadingFrame
+
+local LoadingBarBack = Instance.new("Frame")
+LoadingBarBack.Size = UDim2.new(0.8,0,0,20)
+LoadingBarBack.Position = UDim2.new(0.1,0,0,70)
+LoadingBarBack.BackgroundColor3 = Color3.fromRGB(40,40,40)
+LoadingBarBack.BorderSizePixel = 0
+LoadingBarBack.Parent = LoadingFrame
+Instance.new("UICorner", LoadingBarBack).CornerRadius = UDim.new(0,10)
+
+local LoadingBar = Instance.new("Frame")
+LoadingBar.Size = UDim2.new(0,0,1,0)
+LoadingBar.BackgroundColor3 = Color3.fromRGB(0,170,255)
+LoadingBar.BorderSizePixel = 0
+LoadingBar.Parent = LoadingBarBack
+Instance.new("UICorner", LoadingBar).CornerRadius = UDim.new(0,10)
+
+local tween = TweenService:Create(LoadingBar, TweenInfo.new(2.5, Enum.EasingStyle.Linear), {Size = UDim2.new(1,0,1,0)})
+tween:Play()
+tween.Completed:Connect(function()
+    LoadingFrame:Destroy()
+    CreateConsole()
+end)
+
+-- ===== Console Creation =====
+function CreateConsole()
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 420, 0, 360)
+    Frame.Position = UDim2.new(0.35,0,0.25,0)
+    Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = ScreenGui
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,12)
+
+    -- Title Bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Size = UDim2.new(1,0,0,36)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(0,170,255)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Parent = Frame
+    Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0,12)
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1,-40,1,0)
+    Title.Position = UDim2.new(0,10,0,0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "NC RBX Console"
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = TitleBar
+
+    -- Minimize Button
+    local MinButton = Instance.new("TextButton")
+    MinButton.Size = UDim2.new(0,28,0,28)
+    MinButton.Position = UDim2.new(1,-34,0.5,-14)
+    MinButton.BackgroundColor3 = Color3.fromRGB(255,90,90)
+    MinButton.Text = "-"
+    MinButton.Font = Enum.Font.GothamBold
+    MinButton.TextColor3 = Color3.fromRGB(255,255,255)
+    MinButton.TextSize = 18
+    MinButton.Parent = TitleBar
+    Instance.new("UICorner", MinButton).CornerRadius = UDim.new(0,8)
+
+    -- Content container
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1,0,1,-36)
+    Content.Position = UDim2.new(0,0,0,36)
+    Content.BackgroundTransparency = 1
+    Content.Parent = Frame
+
+    -- === Infinite Jump Toggle ===
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0,180,0,44)
+    ToggleButton.Position = UDim2.new(0.05,0,0,20)
+    ToggleButton.Text = "INFINITE JUMP: OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(200,0,0)
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.TextSize = 16
+    ToggleButton.Parent = Content
+    Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0,8)
+
+    local InfiniteJumpEnabled = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        InfiniteJumpEnabled = not InfiniteJumpEnabled
+        if InfiniteJumpEnabled then
+            ToggleButton.Text = "INFINITE JUMP: ON"
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(0,160,0)
+        else
+            ToggleButton.Text = "INFINITE JUMP: OFF"
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(200,0,0)
+        end
+    end)
+
+    -- === Boost Multiplier Label ===
+    local MultiLabel = Instance.new("TextLabel")
+    MultiLabel.Size = UDim2.new(0.9,0,0,22)
+    MultiLabel.Position = UDim2.new(0.05,0,0,80)
+    MultiLabel.BackgroundTransparency = 1
+    MultiLabel.Text = "Boost Multiplier"
+    MultiLabel.TextColor3 = Color3.fromRGB(0,170,255)
+    MultiLabel.Font = Enum.Font.GothamBold
+    MultiLabel.TextSize = 18
+    MultiLabel.Parent = Content
+
+    -- === Multiplier Buttons ===
+    local multipliers = {0.8,1,1.2,1.5,1.7,2}
+    local ButtonsContainer = Instance.new("Frame")
+    ButtonsContainer.Size = UDim2.new(0.9,0,0,120)
+    ButtonsContainer.Position = UDim2.new(0.05,0,0,110)
+    ButtonsContainer.BackgroundTransparency = 1
+    ButtonsContainer.Parent = Content
+
+    local JumpPowerMultiplier = 1
+    for i, mult in ipairs(multipliers) do
+        local Btn = Instance.new("TextButton")
+        Btn.Size = UDim2.new(0,120,0,40)
+        local row = math.floor((i-1)/3)
+        local col = (i-1)%3
+        Btn.Position = UDim2.new(0, col * 132, 0, row * 44)
+        Btn.Text = tostring(mult) .. "x"
+        Btn.TextColor3 = Color3.fromRGB(255,255,255)
+        Btn.BackgroundColor3 = Color3.fromRGB(50,50,200)
+        Btn.Font = Enum.Font.GothamBold
+        Btn.TextSize = 18
+        Btn.Parent = ButtonsContainer
+        Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,8)
+
+        Btn.MouseButton1Click:Connect(function()
+            JumpPowerMultiplier = mult
+        end)
+    end
+
+    -- === ESP Button ===
+    local ESPButton = Instance.new("TextButton")
+    ESPButton.Size = UDim2.new(0,180,0,44)
+    ESPButton.Position = UDim2.new(0.05,0,0,240)
+    ESPButton.Text = "ESP"
+    ESPButton.TextColor3 = Color3.fromRGB(255,255,255)
+    ESPButton.BackgroundColor3 = Color3.fromRGB(120,0,200)
+    ESPButton.Font = Enum.Font.GothamBold
+    ESPButton.TextSize = 18
+    ESPButton.Parent = Content
+    Instance.new("UICorner", ESPButton).CornerRadius = UDim.new(0,8)
+
+    local ESPLoaded = false
+    ESPButton.MouseButton1Click:Connect(function()
+        if ESPLoaded then return end
+        ESPLoaded = true
+        ESPButton.Text = "ESP Active"
+
+        -- === ESP Script ===
+        local LocalPlayer = Players.LocalPlayer
+        local MaxDistance = 400.5
+        local NametagsEnabled = true 
+
+        local function CreateNametag(Player)
+            if Player == LocalPlayer then return end
+            local function SetupNametag(Character)
+                local Head = Character:FindFirstChild("Head")
+                if not Head then return end
+                local Old = Head:FindFirstChild("Nametag")
+                if Old then Old:Destroy() end
+
+                local BillboardGui = Instance.new("BillboardGui")
+                BillboardGui.Name = "Nametag"
+                BillboardGui.Adornee = Head
+                BillboardGui.Size = UDim2.new(0,75,0,150)
+                BillboardGui.StudsOffset = Vector3.new(0,2,0)
+                BillboardGui.AlwaysOnTop = true
+
+                local TextLabel = Instance.new("TextLabel")
+                TextLabel.Size = UDim2.new(1,0,1,0)
+                TextLabel.Text = Player.Name
+                TextLabel.TextColor3 = Color3.new(1,1,1)
+                TextLabel.BackgroundTransparency = 1
+                TextLabel.TextStrokeTransparency = 0.75
+                TextLabel.Font = Enum.Font.Code
+                TextLabel.TextScaled = true
+                TextLabel.Parent = BillboardGui
+                BillboardGui.Parent = Head
+
+                local function UpdateVisibility()
+                    if NametagsEnabled and Player.Character and Player.Character:FindFirstChild("Head") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head") then
+                        local Distance = (Player.Character.Head.Position - LocalPlayer.Character.Head.Position).Magnitude
+                        BillboardGui.Enabled = (Distance <= MaxDistance)
+                    else
+                        BillboardGui.Enabled = false
+                    end
+                end
+
+                local Connection
+                Connection = RunService.Heartbeat:Connect(function()
+                    if Player.Character and Player.Character:FindFirstChild("Head") then
+                        UpdateVisibility()
+                    else
+                        BillboardGui:Destroy()
+                        Connection:Disconnect()
+                    end
+                end)
+            end
+            if Player.Character then SetupNametag(Player.Character) end
+            Player.CharacterAdded:Connect(SetupNametag)
+        end
+
+        local function ApplyHighlight(Player)
+            if Player == LocalPlayer then return end
+            local function SetupHighlight(Character)
+                for _, v in pairs(Character:GetChildren()) do
+                    if v:IsA("Highlight") then v:Destroy() end
+                end
+                local Highlighter = Instance.new("Highlight")
+                Highlighter.Parent = Character
+                local function UpdateFillColor()
+                    local Default = Color3.fromRGB(255,48,51)
+                    Highlighter.FillColor = Player.TeamColor and Player.TeamColor.Color or Default
+                end
+                UpdateFillColor()
+                Player:GetPropertyChangedSignal("TeamColor"):Connect(UpdateFillColor)
+                local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+                if Humanoid then
+                    Humanoid.Died:Connect(function()
+                        Highlighter:Destroy()
+                    end)
+                end
+            end
+            if Player.Character then SetupHighlight(Player.Character) end
+            Player.CharacterAdded:Connect(SetupHighlight)
+        end
+
+        local function ToggleNametags()
+            NametagsEnabled = not NametagsEnabled
+            for _, Player in pairs(Players:GetPlayers()) do
+                if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("Head") then
+                    local Nametag = Player.Character.Head:FindFirstChild("Nametag")
+                    if Nametag then Nametag.Enabled = NametagsEnabled end
+                end
+            end
+        end
+
+        UserInputService.InputBegan:Connect(function(Input, Gp)
+            if not Gp and Input.KeyCode == Enum.KeyCode.LeftBracket then
+                ToggleNametags()
+            end
+        end)
+
+        for _, Player in pairs(Players:GetPlayers()) do
+            CreateNametag(Player)
+            ApplyHighlight(Player)
+        end
+        Players.PlayerAdded:Connect(function(Player)
+            CreateNametag(Player)
+            ApplyHighlight(Player)
+        end)
+    end)
+
+    -- === Minimize logic ===
+    local Minimized = false
+    MinButton.MouseButton1Click:Connect(function()
+        if not Minimized then
+            Content.Visible = false
+            Frame.Size = UDim2.new(0,200,0,36)
+            MinButton.Text = "+"
+            Minimized = true
+        else
+            Content.Visible = true
+            Frame.Size = UDim2.new(0,420,0,360)
+            MinButton.Text = "-"
+            Minimized = false
+        end
+    end)
+
+    -- Dragging logic
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            update(input)
+        end
+    end)
+
+    -- === Infinite Jump Logic ===
+    local jumpDelay = 0.18
+    local lastJumpTime = 0
+
+    local function SetupCharacter(Char)
+        local Humanoid = Char:WaitForChild("Humanoid")
+        local RootPart = Char:WaitForChild("HumanoidRootPart")
+
+        UserInputService.JumpRequest:Connect(function()
+            if InfiniteJumpEnabled then
+                local now = tick()
+                if now - lastJumpTime >= jumpDelay then
+                    RootPart.Velocity = Vector3.new(RootPart.Velocity.X, Humanoid.JumpPower * JumpPowerMultiplier, RootPart.Velocity.Z)
+                    lastJumpTime = now
+                end
+            end
+        end)
+    end
+
+    if Player.Character then
+        SetupCharacter(Player.Character)
+    end
+    Player.CharacterAdded:Connect(SetupCharacter)
+end
