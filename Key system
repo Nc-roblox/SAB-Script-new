@@ -1,0 +1,273 @@
+-- Professional Key Prompt GUI (movable, minimize/maximize)
+-- Key (exact): "G6rK1tBn"
+-- Linkvertise:  https://direct-link.net/1235059/trFAMn4rwxro
+-- LootLabs:     https://linkunlocker.com/steal-a-brainrot-script-lootlabs-udpXt
+-- On success: runs the loadstring URL provided by you.
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Player = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- If user already has key attribute in this session, skip GUI and run script directly
+if Player:GetAttribute("HasKey") == true or Player:FindFirstChild("HasKey") and Player:FindFirstChild("HasKey").Value == true then
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Nc-roblox/SAB-Script-new/refs/heads/main/Sab%20script%20new"))()
+    end)
+    return
+end
+
+-- Helper: safe clipboard copy
+local function copyToClipboard(text)
+    if setclipboard then
+        local ok, err = pcall(setclipboard, text)
+        return ok
+    else
+        print("[COPY LINK] Clipboard unavailable. Link:", text)
+        return false
+    end
+end
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KeyPromptGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = Player:WaitForChild("PlayerGui")
+
+-- Main window
+local window = Instance.new("Frame")
+window.Name = "KeyWindow"
+window.Size = UDim2.new(0, 520, 0, 220)
+window.Position = UDim2.new(0.5, -260, 0.45, -110)
+window.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
+window.BorderSizePixel = 0
+window.Active = true
+window.Parent = screenGui
+
+local windowCorner = Instance.new("UICorner", window)
+windowCorner.CornerRadius = UDim.new(0, 10)
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 42)
+titleBar.BackgroundColor3 = Color3.fromRGB(18, 20, 24)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = window
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 12, 0, 0)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(230,230,230)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "Script Key Required"
+title.Parent = titleBar
+
+-- Minimize/Maximize button
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 36, 0, 28)
+minBtn.Position = UDim2.new(1, -44, 0.5, -14)
+minBtn.AnchorPoint = Vector2.new(0, 0)
+minBtn.BackgroundColor3 = Color3.fromRGB(38, 150, 255)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 20
+minBtn.TextColor3 = Color3.fromRGB(255,255,255)
+minBtn.Text = "-"
+minBtn.Parent = titleBar
+local minCorner = Instance.new("UICorner", minBtn)
+minCorner.CornerRadius = UDim.new(0,6)
+
+-- Close button (optional small X)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 28, 0, 28)
+closeBtn.Position = UDim2.new(1, -88, 0.5, -14)
+closeBtn.BackgroundColor3 = Color3.fromRGB(68, 68, 68)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Text = "×"
+closeBtn.Parent = titleBar
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0,6)
+
+-- Content container (so minimize hides content)
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, 0, 1, -42)
+content.Position = UDim2.new(0, 0, 0, 42)
+content.BackgroundTransparency = 1
+content.Parent = window
+
+-- Info text
+local info = Instance.new("TextLabel")
+info.Size = UDim2.new(1, -24, 0, 34)
+info.Position = UDim2.new(0, 12, 0, 8)
+info.BackgroundTransparency = 1
+info.Font = Enum.Font.Gotham
+info.TextSize = 14
+info.TextColor3 = Color3.fromRGB(190,190,190)
+info.TextWrapped = true
+info.Text = "This script requires a permanent key. Complete a short task using one of the provider links and paste the key below. Once validated the key is permanent (client-side)."
+info.Parent = content
+
+-- Key textbox
+local box = Instance.new("TextBox")
+box.Size = UDim2.new(1, -24, 0, 46)
+box.Position = UDim2.new(0, 12, 0, 52)
+box.BackgroundColor3 = Color3.fromRGB(30,30,30)
+box.TextColor3 = Color3.fromRGB(240,240,240)
+box.Font = Enum.Font.GothamBold
+box.TextSize = 18
+box.PlaceholderText = "Paste key here"
+box.ClearTextOnFocus = false
+box.Parent = content
+Instance.new("UICorner", box).CornerRadius = UDim.new(0,8)
+
+-- Status line
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -24, 0, 18)
+status.Position = UDim2.new(0, 12, 0, 104)
+status.BackgroundTransparency = 1
+status.Font = Enum.Font.Gotham
+status.TextSize = 14
+status.TextColor3 = Color3.fromRGB(255,200,0)
+status.Text = ""
+status.TextXAlignment = Enum.TextXAlignment.Left
+status.Parent = content
+
+-- Copy link buttons
+local btnHolder = Instance.new("Frame")
+btnHolder.Size = UDim2.new(1, -24, 0, 36)
+btnHolder.Position = UDim2.new(0, 12, 0, 130)
+btnHolder.BackgroundTransparency = 1
+btnHolder.Parent = content
+
+local function makeCopyBtn(text, x, url)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0.48, 0, 1, 0)
+    b.Position = UDim2.new(x, 0, 0, 0)
+    b.BackgroundColor3 = Color3.fromRGB(28,120,220)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 16
+    b.TextColor3 = Color3.fromRGB(255,255,255)
+    b.Text = text
+    b.Parent = btnHolder
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
+
+    b.MouseButton1Click:Connect(function()
+        local ok = copyToClipboard(url)
+        if ok then
+            status.TextColor3 = Color3.fromRGB(150,255,150)
+            status.Text = text .. " link copied to clipboard."
+        else
+            status.TextColor3 = Color3.fromRGB(255,200,0)
+            status.Text = text .. " link printed to console. Copy manually."
+        end
+    end)
+end
+
+makeCopyBtn("Linkvertise", 0, "https://direct-link.net/1235059/trFAMn4rwxro")
+makeCopyBtn("LootLabs", 0.52, "https://linkunlocker.com/steal-a-brainrot-script-lootlabs-udpXt")
+
+-- Confirm button
+local confirm = Instance.new("TextButton")
+confirm.Size = UDim2.new(0.46, 0, 0, 38)
+confirm.Position = UDim2.new(0.27, 0, 0, 174)
+confirm.BackgroundColor3 = Color3.fromRGB(40,190,255)
+confirm.Font = Enum.Font.GothamBold
+confirm.TextSize = 16
+confirm.TextColor3 = Color3.fromRGB(255,255,255)
+confirm.Text = "Verify Key"
+confirm.Parent = content
+Instance.new("UICorner", confirm).CornerRadius = UDim.new(0,8)
+
+-- Minimize logic
+local isMin = false
+minBtn.MouseButton1Click:Connect(function()
+    isMin = not isMin
+    if isMin then
+        content.Visible = false
+        window.Size = UDim2.new(0, 260, 0, 42)
+        minBtn.Text = "+"
+    else
+        content.Visible = true
+        window.Size = UDim2.new(0, 520, 0, 220)
+        minBtn.Text = "-"
+    end
+end)
+
+-- Close behavior: just hide GUI (keeps script not running)
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui.Enabled = false
+end)
+
+-- Dragging (titleBar)
+do
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = window.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    titleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- Confirm logic: exact match
+confirm.MouseButton1Click:Connect(function()
+    status.TextColor3 = Color3.fromRGB(255,200,0)
+    status.Text = "Verifying key..."
+    -- small delay for UX
+    task.spawn(function()
+        task.wait(0.15)
+        local entered = tostring(box.Text or ""):gsub("^%s+",""):gsub("%s+$","")
+        if entered == "G6rK1tBn" then
+            -- mark permanent client-side for this session
+            local b = Player:FindFirstChild("HasKey")
+            if not b then
+                b = Instance.new("BoolValue")
+                b.Name = "HasKey"
+                b.Value = true
+                b.Parent = Player
+            else
+                b.Value = true
+            end
+            Player:SetAttribute("HasKey", true)
+
+            status.TextColor3 = Color3.fromRGB(150,255,150)
+            status.Text = "Key valid — launching script..."
+            task.wait(0.25)
+            -- destroy GUI gracefully
+            pcall(function() screenGui:Destroy() end)
+
+            -- Run the provided loadstring
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Nc-roblox/SAB-Script-new/refs/heads/main/Sab%20script%20new"))()
+            end)
+        else
+            status.TextColor3 = Color3.fromRGB(255,120,120)
+            status.Text = "Invalid key. Copy a provider link above and try again."
+        end
+    end)
+end)
