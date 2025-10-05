@@ -60,7 +60,7 @@ end)
 -- ===== Console Creation =====
 function CreateConsole()
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 420, 0, 360)
+    Frame.Size = UDim2.new(0, 420, 0, 450) -- increased height for Anti-Hit button
     Frame.Position = UDim2.new(0.35,0,0.25,0)
     Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
     Frame.BorderSizePixel = 0
@@ -291,6 +291,44 @@ function CreateConsole()
         end)
     end)
 
+    -- === ANTI-HIT VIP BUTTON (Pulsing Highlight) ===
+    local AntiHitButton = Instance.new("TextButton")
+    AntiHitButton.Size = UDim2.new(0, 200, 0, 50)
+    AntiHitButton.Position = UDim2.new(0.05,0,0,310) -- below ESP
+    AntiHitButton.Text = "ANTI-HIT: OFF"
+    AntiHitButton.TextColor3 = Color3.fromRGB(255,255,0) -- neon yellow
+    AntiHitButton.BackgroundColor3 = Color3.fromRGB(128,0,255) -- dark purple
+    AntiHitButton.Font = Enum.Font.GothamBlack
+    AntiHitButton.TextSize = 20
+    AntiHitButton.Parent = Content
+    Instance.new("UICorner", AntiHitButton).CornerRadius = UDim.new(0,12)
+
+    local Outline = Instance.new("UIStroke")
+    Outline.Thickness = 3
+    Outline.Color = Color3.fromRGB(0,255,255) -- cyan outline
+    Outline.Parent = AntiHitButton
+
+    local AntiHitEnabled = false
+    AntiHitButton.MouseButton1Click:Connect(function()
+        AntiHitEnabled = not AntiHitEnabled
+        if AntiHitEnabled then
+            AntiHitButton.Text = "ANTI-HIT: ON"
+        else
+            AntiHitButton.Text = "ANTI-HIT: OFF"
+        end
+    end)
+
+    -- Pulsing effect
+    spawn(function()
+        local t = 0
+        while AntiHitButton.Parent do
+            t = t + 0.03
+            local pulse = 0.5 + 0.5*math.sin(t*2) -- 0..1 pulsing
+            AntiHitButton.BackgroundColor3 = Color3.fromRGB(128,0,255):Lerp(Color3.fromRGB(200,50,255), pulse)
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
     -- === Minimize logic ===
     local Minimized = false
     MinButton.MouseButton1Click:Connect(function()
@@ -301,7 +339,7 @@ function CreateConsole()
             Minimized = true
         else
             Content.Visible = true
-            Frame.Size = UDim2.new(0,420,0,360)
+            Frame.Size = UDim2.new(0,420,0,450)
             MinButton.Text = "-"
             Minimized = false
         end
